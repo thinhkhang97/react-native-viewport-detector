@@ -1,8 +1,8 @@
-import React, {useContext, useEffect, useRef} from 'react';
-import {Dimensions, View, ViewStyle} from 'react-native';
-import {LayoutRectangle} from '../types';
-import {checkInViewPort} from '../utils';
-import {ViewPortDetectorContext} from './ViewPortDetectorContext';
+import React, { useContext, useEffect, useRef } from "react";
+import { Dimensions, View, ViewStyle } from "react-native";
+import { LayoutRectangle } from "../types";
+import { checkInViewPort } from "../utils";
+import { ViewPortDetectorContext } from "./ViewPortDetectorContext";
 
 type Props = {
   /**
@@ -18,12 +18,12 @@ type Props = {
   /**
    * The minimum percentage of width required for the child to be considered in the viewport.
    */
-  percentInWidth?: number;
+  percentWidth?: number;
 
   /**
    * The minimum percentage of height required for the child to be considered in the viewport.
    */
-  percentInHeight?: number;
+  percentHeight?: number;
 
   /**
    * A callback function called when the visibility state changes.
@@ -33,19 +33,19 @@ type Props = {
   onChange: (isInViewPort: boolean) => void;
 } & ViewStyle;
 
-const SCREEN_WIDTH = Dimensions.get('window').width;
-const SCREEN_HEIGHT = Dimensions.get('window').height;
+const SCREEN_WIDTH = Dimensions.get("window").width;
+const SCREEN_HEIGHT = Dimensions.get("window").height;
 
 export const ViewPortDetector: React.FC<Props> = ({
   onChange,
   children,
   frequency = 1000,
-  percentInWidth = 1,
-  percentInHeight = 1,
+  percentWidth = 1,
+  percentHeight = 1,
   ...props
 }) => {
   const view = useRef<View>(null);
-  const {parentLayout} = useContext(ViewPortDetectorContext);
+  const { parentLayout } = useContext(ViewPortDetectorContext);
   const parentLayoutRef = useRef<LayoutRectangle>({
     x: 0,
     y: 0,
@@ -82,7 +82,7 @@ export const ViewPortDetector: React.FC<Props> = ({
           width: number,
           height: number,
           pageX: number,
-          pageY: number,
+          pageY: number
         ) => {
           onChange(
             checkInViewPort(
@@ -93,11 +93,11 @@ export const ViewPortDetector: React.FC<Props> = ({
                 width,
                 height,
               },
-              percentInWidth,
-              percentInHeight,
-            ),
+              percentWidth,
+              percentHeight
+            )
           );
-        },
+        }
       );
     }, frequency);
     return () => {

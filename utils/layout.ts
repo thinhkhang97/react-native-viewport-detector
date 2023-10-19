@@ -1,4 +1,4 @@
-import {LayoutRectangle} from '../types';
+import { LayoutRectangle } from "../types";
 
 /**
  * Function to check if the child view is in the viewport.
@@ -9,19 +9,19 @@ import {LayoutRectangle} from '../types';
 export const checkInViewPort = (
   parentView: LayoutRectangle,
   childView: LayoutRectangle,
-  percentInWidth = 1,
-  percentInHeight = 1,
+  percentWidth = 1,
+  percentHeight = 1
 ) => {
   const intersectWidth = Math.abs(
     Math.min(childView.x + childView.width, parentView.x + parentView.width) -
-      Math.max(childView.x, parentView.x),
+      Math.max(childView.x, parentView.x)
   );
   const intersectHeight = Math.abs(
     Math.min(childView.y + childView.height, parentView.y + parentView.height) -
-      Math.max(childView.y, parentView.y),
+      Math.max(childView.y, parentView.y)
   );
   return (
-    intersectWidth / childView.width >= percentInWidth &&
-    intersectHeight / childView.height >= percentInHeight
+    intersectWidth / childView.width >= percentWidth &&
+    intersectHeight / childView.height >= percentHeight
   );
 };
