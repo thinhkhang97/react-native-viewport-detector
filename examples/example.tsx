@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { SafeAreaView, ScrollView, StyleSheet, View } from "react-native";
-import { ViewPortDetectorProvider, ViewPortDetector } from "./components";
+import { ViewPortDetectorProvider, ViewPortDetector } from "../components";
 
 function App(): JSX.Element {
   return (
