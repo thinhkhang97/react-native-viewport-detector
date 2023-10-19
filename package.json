@@ -1,0 +1,31 @@
+{
+  "name": "react-native-viewport-detector",
+  "version": "1.0.0",
+  "description": "React Native library for detecting component visibility in the viewport.",
+  "main": "index.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "react-native",
+    "viewport",
+    "visibility",
+    "detector",
+    "in-view",
+    "screen",
+    "components",
+    "UI",
+    "visibility-detection",
+    "mobile",
+    "user-experience",
+    "optimization",
+    "react-native-library",
+    "react",
+    "utility",
+    "performance",
+    "react-native-viewport",
+    "react-native-visibility"
+  ],
+  "author": "Khang Nguyen <thinhkhang97@gmail.com> (https://github.com/thinhkhang97)",
+  "license": "ISC"
+}
