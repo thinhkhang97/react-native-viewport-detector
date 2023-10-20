@@ -1,8 +1,12 @@
 {
   "name": "react-native-viewport-detector",
-  "version": "1.0.0",
+  "version": "1.0.5",
   "description": "React Native library for detecting component visibility in the viewport.",
   "main": "index.ts",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/thinhkhang97/react-native-viewport-detector.git"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
