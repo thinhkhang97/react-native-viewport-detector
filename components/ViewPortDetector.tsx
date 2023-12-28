@@ -26,6 +26,11 @@ type Props = {
   percentHeight?: number;
 
   /**
+   * The delay (in milliseconds) to wait before the layout is calculated.
+   */
+  defaultLayoutDelay?: number;
+
+  /**
    * A callback function called when the visibility state changes.
    * @param isInViewPort
    * @returns void
@@ -42,6 +47,7 @@ export const ViewPortDetector: React.FC<Props> = ({
   frequency = 1000,
   percentWidth = 1,
   percentHeight = 1,
+  defaultLayoutDelay = 500,
   ...props
 }) => {
   const view = useRef<View>(null);
@@ -71,37 +77,41 @@ export const ViewPortDetector: React.FC<Props> = ({
    * Use an interval to periodically check if the child view is in the viewport.
    */
   useEffect(() => {
-    const interval = setInterval(() => {
-      if (!view.current || !parentLayoutRef.current) {
-        return;
-      }
-      view.current.measure(
-        (
-          _: number,
-          __: number,
-          width: number,
-          height: number,
-          pageX: number,
-          pageY: number
-        ) => {
-          onChange(
-            checkInViewPort(
-              parentLayoutRef.current,
-              {
-                x: pageX,
-                y: pageY,
-                width,
-                height,
-              },
-              percentWidth,
-              percentHeight
-            )
-          );
+    let interval: NodeJS.Timeout;
+    const timeout = setTimeout(() => {
+      interval = setInterval(() => {
+        if (!view.current || !parentLayoutRef.current) {
+          return;
         }
-      );
-    }, frequency);
+        view.current.measure(
+          (
+            _: number,
+            __: number,
+            width: number,
+            height: number,
+            pageX: number,
+            pageY: number
+          ) => {
+            onChange(
+              checkInViewPort(
+                parentLayoutRef.current,
+                {
+                  x: pageX,
+                  y: pageY,
+                  width,
+                  height,
+                },
+                percentWidth,
+                percentHeight
+              )
+            );
+          }
+        );
+      }, frequency);
+    }, defaultLayoutDelay);
     return () => {
       clearInterval(interval);
+      clearTimeout(timeout);
     };
   }, []);
 
