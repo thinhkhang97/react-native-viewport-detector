@@ -101,7 +101,7 @@ export const ViewPortDetector: React.FC<Props> = ({
             percentWidth,
             percentHeight
           );
-          if (newValue === true && runOnce) {
+          if (newValue && runOnce) {
             clearInterval(interval);
           }
           onChange(newValue);
