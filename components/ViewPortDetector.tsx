@@ -26,6 +26,11 @@ type Props = {
   percentHeight?: number;
 
   /**
+   * Only run once when the child is in the viewport.
+   */
+  runOnce?: boolean;
+
+  /**
    * A callback function called when the visibility state changes.
    * @param isInViewPort
    * @returns void
@@ -42,6 +47,7 @@ export const ViewPortDetector: React.FC<Props> = ({
   frequency = 1000,
   percentWidth = 1,
   percentHeight = 1,
+  runOnce = false,
   ...props
 }) => {
   const view = useRef<View>(null);
@@ -84,19 +90,21 @@ export const ViewPortDetector: React.FC<Props> = ({
           pageX: number,
           pageY: number
         ) => {
-          onChange(
-            checkInViewPort(
-              parentLayoutRef.current,
-              {
-                x: pageX,
-                y: pageY,
-                width,
-                height,
-              },
-              percentWidth,
-              percentHeight
-            )
+          const newValue = checkInViewPort(
+            parentLayoutRef.current,
+            {
+              x: pageX,
+              y: pageY,
+              width,
+              height,
+            },
+            percentWidth,
+            percentHeight
           );
+          if (newValue && runOnce) {
+            clearInterval(interval);
+          }
+          onChange(newValue);
         }
       );
     }, frequency);
