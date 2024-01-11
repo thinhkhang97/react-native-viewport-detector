@@ -63,11 +63,12 @@ function ViewComponent(): JSX.Element {
 
 ## API
 
-| Properties      |                                       Description                                        | Default |
-| --------------- | :--------------------------------------------------------------------------------------: | :-----: |
-| `frequency`     |         The frequency (in milliseconds) to check if the child is in the viewport         |  1000   |
-| `percentWidth`  | The minimum percentage of width required for the child to be considered in the viewport  |    1    |
-| `percentHeight` | The minimum percentage of height required for the child to be considered in the viewport |    1    |
+| Properties       |                                       Description                                        | Default |
+| ---------------- | :--------------------------------------------------------------------------------------: | :-----: |
+| `frequency`      |         The frequency (in milliseconds) to check if the child is in the viewport         |  1000   |
+| `percentWidth`   | The minimum percentage of width required for the child to be considered in the viewport  |    1    |
+| `percentHeight`  | The minimum percentage of height required for the child to be considered in the viewport |    1    |
+| `startMeasuring` |     If true, the child will be measured immediately after the component is mounted.      |  true   |
 
 | API        |                         Description                          | Required |
 | ---------- | :----------------------------------------------------------: | :------: |

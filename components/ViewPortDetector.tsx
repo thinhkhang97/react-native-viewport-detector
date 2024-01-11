@@ -26,6 +26,11 @@ type Props = {
   percentHeight?: number;
 
   /**
+   * If true, the child will be measured immediately after the component is mounted.
+   */
+  startMeasuring?: boolean;
+
+  /**
    * A callback function called when the visibility state changes.
    * @param isInViewPort
    * @returns void
@@ -42,6 +47,7 @@ export const ViewPortDetector: React.FC<Props> = ({
   frequency = 1000,
   percentWidth = 1,
   percentHeight = 1,
+  startMeasuring = true,
   ...props
 }) => {
   const view = useRef<View>(null);
@@ -71,39 +77,34 @@ export const ViewPortDetector: React.FC<Props> = ({
    * Use an interval to periodically check if the child view is in the viewport.
    */
   useEffect(() => {
-    const interval = setInterval(() => {
-      if (!view.current || !parentLayoutRef.current) {
-        return;
+    if (!view.current || !parentLayoutRef.current || !startMeasuring) {
+      return;
+    }
+    view.current.measure(
+      (
+        _: number,
+        __: number,
+        width: number,
+        height: number,
+        pageX: number,
+        pageY: number
+      ) => {
+        onChange(
+          checkInViewPort(
+            parentLayoutRef.current,
+            {
+              x: pageX,
+              y: pageY,
+              width,
+              height,
+            },
+            percentWidth,
+            percentHeight
+          )
+        );
       }
-      view.current.measure(
-        (
-          _: number,
-          __: number,
-          width: number,
-          height: number,
-          pageX: number,
-          pageY: number
-        ) => {
-          onChange(
-            checkInViewPort(
-              parentLayoutRef.current,
-              {
-                x: pageX,
-                y: pageY,
-                width,
-                height,
-              },
-              percentWidth,
-              percentHeight
-            )
-          );
-        }
-      );
-    }, frequency);
-    return () => {
-      clearInterval(interval);
-    };
-  }, []);
+    );
+  }, [startMeasuring]);
 
   return (
     <View ref={view} {...props}>
