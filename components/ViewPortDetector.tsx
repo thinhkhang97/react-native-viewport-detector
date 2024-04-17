@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useRef } from "react";
-import { Dimensions, View, ViewStyle } from "react-native";
+import { Dimensions, Platform, View, ViewStyle } from "react-native";
 import { LayoutRectangle } from "../types";
 import { checkInViewPort } from "../utils";
 import { ViewPortDetectorContext } from "./ViewPortDetectorContext";
@@ -51,6 +51,8 @@ export const ViewPortDetector: React.FC<Props> = ({
   ...props
 }) => {
   const view = useRef<View>(null);
+  const lastInViewPortValue = useRef(false);
+
   const { parentLayout } = useContext(ViewPortDetectorContext);
   const parentLayoutRef = useRef<LayoutRectangle>({
     x: 0,
@@ -104,17 +106,24 @@ export const ViewPortDetector: React.FC<Props> = ({
           if (newValue && runOnce) {
             clearInterval(interval);
           }
-          onChange(newValue);
+
+          // Only call onChange callback when inViewPort value changed
+          if (newValue !== lastInViewPortValue.current) {
+            onChange(newValue)
+            lastInViewPortValue.current = newValue
+          }
         }
       );
     }, frequency);
     return () => {
       clearInterval(interval);
     };
-  }, []);
+  }, [onChange]);
 
   return (
-    <View ref={view} {...props}>
+    // Having collapsable={false} will disable view flattening on Android which is a workaronud to fix the issue with measure() on android
+    // https://github.com/facebook/react-native/issues/29712
+    <View ref={view} collapsable={Platform.OS !== 'android'} {...props}>
       {children}
     </View>
   );
