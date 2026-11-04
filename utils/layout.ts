@@ -14,6 +14,11 @@ export const checkInViewPort = (
   percentWidth = 1,
   percentHeight = 1
 ) => {
+  // A zero-sized child (e.g. not laid out yet) can never be visible
+  if (childView.width <= 0 || childView.height <= 0) {
+    return false;
+  }
+
   // Calculate the intersection rectangle
   const intersectionLeft = Math.max(childView.x, parentView.x);
   const intersectionRight = Math.min(
@@ -47,4 +52,24 @@ export const checkInViewPort = (
     visibleWidthPercentage >= percentWidth &&
     visibleHeightPercentage >= percentHeight
   );
+};
+
+/**
+ * Returns the overlap of two rectangles; width/height are 0 when they don't overlap.
+ * @param {LayoutRectangle} a - First rectangle.
+ * @param {LayoutRectangle} b - Second rectangle.
+ * @returns {LayoutRectangle} The intersection rectangle.
+ */
+export const intersectRect = (
+  a: LayoutRectangle,
+  b: LayoutRectangle
+): LayoutRectangle => {
+  const x = Math.max(a.x, b.x);
+  const y = Math.max(a.y, b.y);
+  return {
+    x,
+    y,
+    width: Math.max(0, Math.min(a.x + a.width, b.x + b.width) - x),
+    height: Math.max(0, Math.min(a.y + a.height, b.y + b.height) - y),
+  };
 };

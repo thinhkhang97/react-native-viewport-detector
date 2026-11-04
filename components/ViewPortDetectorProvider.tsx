@@ -1,27 +1,49 @@
-import React, {useState} from 'react';
-import {
-  LayoutChangeEvent,
-  LayoutRectangle,
-  View,
-  ViewStyle,
-} from 'react-native';
-import {ViewPortDetectorContext} from './ViewPortDetectorContext';
+import React, {useCallback, useContext, useMemo, useRef} from 'react';
+import {StyleProp, View, ViewStyle} from 'react-native';
+import {intersectRect} from '../utils';
+import {MeasureViewport, ViewPortDetectorContext} from './ViewPortDetectorContext';
 
 type Props = {
-  children: React.ReactElement;
+  children: React.ReactNode;
+  style?: StyleProp<ViewStyle>;
+  testID?: string;
 } & ViewStyle;
 
 export const ViewPortDetectorProvider: React.FC<Props> = ({
   children,
-  ...props
+  style,
+  testID,
+  ...styleProps
 }) => {
-  const [context, setContext] = useState<{parentLayout?: LayoutRectangle}>({});
-  const handleViewLayout = (event: LayoutChangeEvent) => {
-    setContext({parentLayout: event.nativeEvent.layout});
-  };
+  // ComponentRef works whether View is typed as a class (older RN) or a function with a ref prop (RN 0.80+ strict API).
+  const view = useRef<React.ComponentRef<typeof View>>(null);
+
+  const {measureViewport: measureParent} = useContext(ViewPortDetectorContext);
+
+  // A nested provider is only as visible as its parent's viewport allows.
+  const measureViewport = useCallback<MeasureViewport>(
+    callback => {
+      view.current?.measureInWindow((x, y, width, height) => {
+        const own = {x, y, width, height};
+        if (measureParent) {
+          measureParent(parent => callback(intersectRect(own, parent)));
+        } else {
+          callback(own);
+        }
+      });
+    },
+    [measureParent],
+  );
+
+  const context = useMemo(() => ({measureViewport}), [measureViewport]);
+
   return (
     <ViewPortDetectorContext.Provider value={context}>
-      <View onLayout={handleViewLayout} {...props}>
+      <View
+        ref={view}
+        testID={testID}
+        collapsable={false}
+        style={[styleProps, style]}>
         {children}
       </View>
     </ViewPortDetectorContext.Provider>
