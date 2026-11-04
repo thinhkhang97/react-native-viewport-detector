@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "jsx": "react-native",
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "target": "es2020",
+    "lib": ["es2020"],
+    "types": ["react-native", "jest"],
+    "skipLibCheck": true,
+    "noEmit": true
+  },
+  "include": ["index.ts", "components", "types", "utils"]
+}

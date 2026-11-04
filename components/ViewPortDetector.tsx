@@ -1,11 +1,15 @@
 import React, {
+  useCallback,
   useContext,
   useEffect,
   useRef,
-  useCallback,
-  useMemo,
 } from "react";
-import { View, ViewStyle, useWindowDimensions } from "react-native";
+import {
+  StyleProp,
+  View,
+  ViewStyle,
+  useWindowDimensions,
+} from "react-native";
 import { LayoutRectangle } from "../types";
 import { checkInViewPort } from "../utils";
 import { ViewPortDetectorContext } from "./ViewPortDetectorContext";
@@ -16,15 +20,17 @@ const DEFAULT_PERCENT_WIDTH = 1;
 const DEFAULT_PERCENT_HEIGHT = 1;
 const INITIAL_CHECK_DELAY = 100;
 
+type Timer = ReturnType<typeof setTimeout>;
+
 type Props = {
   /**
-   * The child component to monitor.
+   * The content to monitor.
    */
-  children: React.ReactElement;
+  children: React.ReactNode;
 
   /**
    * The frequency (in milliseconds) to check if the child is in the viewport.
-   * Must be a positive number.
+   * Must be a positive number; falls back to the default otherwise.
    * @default 1000
    */
   frequency?: number;
@@ -44,11 +50,28 @@ type Props = {
   percentHeight?: number;
 
   /**
+   * Stop checking (and stop calling `onChange`) after the child is first reported visible.
+   * @default false
+   */
+  runOnce?: boolean;
+
+  /**
+   * Set to false to pause checking, e.g. until data has loaded and the child has its final layout.
+   * @default true
+   */
+  enabled?: boolean;
+
+  /**
    * A callback function called when the visibility state changes.
    * @param isInViewPort - Whether the component is currently visible in the viewport
    * @returns void
    */
   onChange: (isInViewPort: boolean) => void;
+
+  /**
+   * Style for the wrapping view.
+   */
+  style?: StyleProp<ViewStyle>;
 
   /**
    * Optional test ID for testing purposes
@@ -67,48 +90,51 @@ export const ViewPortDetector: React.FC<Props> = ({
   frequency = DEFAULT_FREQUENCY,
   percentWidth = DEFAULT_PERCENT_WIDTH,
   percentHeight = DEFAULT_PERCENT_HEIGHT,
+  runOnce = false,
+  enabled = true,
+  style,
   testID,
   accessibilityLabel,
-  ...props
+  ...styleProps
 }) => {
-  const view = useRef<View>(null);
-  const { parentLayout } = useContext(ViewPortDetectorContext);
-  const isFirstLayout = useRef(true);
-  const timeoutRef = useRef<NodeJS.Timeout>();
-  const intervalRef = useRef<NodeJS.Timeout>();
-  const isMounted = useRef(true);
+  const view = useRef<React.ComponentRef<typeof View>>(null);
+  const { measureViewport } = useContext(ViewPortDetectorContext);
   const { width: screenWidth, height: screenHeight } = useWindowDimensions();
+  const windowLayout = useRef<LayoutRectangle>({
+    x: 0,
+    y: 0,
+    width: screenWidth,
+    height: screenHeight,
+  });
+  const onChangeRef = useRef(onChange);
+  const lastValue = useRef<boolean | null>(null);
+  const isDone = useRef(false);
+  const isMounted = useRef(true);
+  const intervalRef = useRef<Timer | undefined>(undefined);
+  const layoutTimeoutRef = useRef<Timer | undefined>(undefined);
+  const safeFrequency = frequency > 0 ? frequency : DEFAULT_FREQUENCY;
 
-  // Memoize initial parent layout
-  const initialParentLayout = useMemo<LayoutRectangle>(
-    () => ({
-      x: 0,
-      y: 0,
-      width: screenWidth,
-      height: screenHeight,
-    }),
-    [screenWidth, screenHeight]
-  );
-
-  const parentLayoutRef = useRef<LayoutRectangle>(initialParentLayout);
-
-  // Cleanup on unmount
   useEffect(() => {
+    onChangeRef.current = onChange;
+  }, [onChange]);
+
+  useEffect(() => {
+    windowLayout.current = { x: 0, y: 0, width: screenWidth, height: screenHeight };
+  }, [screenWidth, screenHeight]);
+
+  useEffect(() => {
+    isMounted.current = true;
     return () => {
       isMounted.current = false;
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
     };
   }, []);
 
   // Validate props
   useEffect(() => {
     if (frequency <= 0) {
-      console.warn("ViewPortDetector: frequency must be a positive number");
+      console.warn(
+        `ViewPortDetector: frequency must be a positive number, falling back to ${DEFAULT_FREQUENCY}`
+      );
     }
     if (percentWidth < 0 || percentWidth > 1) {
       console.warn("ViewPortDetector: percentWidth must be between 0 and 1");
@@ -118,95 +144,82 @@ export const ViewPortDetector: React.FC<Props> = ({
     }
   }, [frequency, percentWidth, percentHeight]);
 
-  // Update parent layout reference when it changes
-  useEffect(() => {
-    if (parentLayout) {
-      parentLayoutRef.current = parentLayout;
+  const stopChecking = useCallback(() => {
+    if (intervalRef.current !== undefined) {
+      clearInterval(intervalRef.current);
     }
-  }, [parentLayout]);
+    if (layoutTimeoutRef.current !== undefined) {
+      clearTimeout(layoutTimeoutRef.current);
+    }
+  }, []);
 
+  // Only notify on transitions; with runOnce, stop for good after the first visible report.
+  const report = useCallback(
+    (isVisible: boolean) => {
+      if (!isMounted.current || isDone.current || isVisible === lastValue.current) {
+        return;
+      }
+      lastValue.current = isVisible;
+      if (isVisible && runOnce) {
+        isDone.current = true;
+        stopChecking();
+      }
+      onChangeRef.current(isVisible);
+    },
+    [runOnce, stopChecking]
+  );
+
+  // Both rectangles come from measureInWindow so they share one coordinate space.
   const checkVisibility = useCallback(() => {
-    if (!view.current || !parentLayoutRef.current || !isMounted.current) {
+    if (!view.current || isDone.current) {
       return;
     }
+    const measureChild = (viewport: LayoutRectangle) => {
+      view.current?.measureInWindow((x, y, width, height) => {
+        report(
+          checkInViewPort(viewport, { x, y, width, height }, percentWidth, percentHeight)
+        );
+      });
+    };
 
     try {
-      view.current.measure(
-        (
-          x: number,
-          y: number,
-          width: number,
-          height: number,
-          pageX: number,
-          pageY: number
-        ) => {
-          // Skip if we don't have valid measurements
-          if (
-            width === undefined ||
-            height === undefined ||
-            pageX === undefined ||
-            pageY === undefined
-          ) {
-            console.warn("ViewPortDetector: Invalid measurements received");
-            return;
-          }
-
-          const isVisible = checkInViewPort(
-            parentLayoutRef.current,
-            {
-              x: pageX,
-              y: pageY,
-              width,
-              height,
-            },
-            percentWidth,
-            percentHeight
-          );
-
-          if (isMounted.current) {
-            onChange(isVisible);
-          }
-        }
-      );
+      if (measureViewport) {
+        measureViewport(measureChild);
+      } else {
+        measureChild(windowLayout.current);
+      }
     } catch (error: unknown) {
       console.error(
         "ViewPortDetector: Error measuring view:",
         error instanceof Error ? error.message : String(error)
       );
     }
-  }, [onChange, percentWidth, percentHeight]);
+  }, [measureViewport, percentWidth, percentHeight, report]);
 
-  // Handle layout changes
+  // Re-check shortly after any layout change, coalescing bursts of onLayout events.
   const handleLayout = useCallback(() => {
-    if (isFirstLayout.current) {
-      isFirstLayout.current = false;
-      // Clear any existing timeout
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
-      // Small delay to ensure layout is complete
-      timeoutRef.current = setTimeout(checkVisibility, INITIAL_CHECK_DELAY);
+    if (!enabled || isDone.current) {
+      return;
     }
-  }, [checkVisibility]);
+    if (layoutTimeoutRef.current !== undefined) {
+      clearTimeout(layoutTimeoutRef.current);
+    }
+    layoutTimeoutRef.current = setTimeout(checkVisibility, INITIAL_CHECK_DELAY);
+  }, [enabled, checkVisibility]);
 
   // Check viewport visibility periodically
   useEffect(() => {
-    // Initial check after a small delay to ensure layout is complete
+    if (!enabled || isDone.current) {
+      return;
+    }
     const initialCheck = setTimeout(checkVisibility, INITIAL_CHECK_DELAY);
-
-    // Set up interval for periodic checks
-    intervalRef.current = setInterval(checkVisibility, frequency);
+    intervalRef.current = setInterval(checkVisibility, safeFrequency);
 
     return () => {
       clearTimeout(initialCheck);
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
+      stopChecking();
     };
-  }, [frequency, checkVisibility]);
+  }, [enabled, safeFrequency, checkVisibility, stopChecking]);
 
   return (
     <View
@@ -214,7 +227,9 @@ export const ViewPortDetector: React.FC<Props> = ({
       onLayout={handleLayout}
       testID={testID}
       accessibilityLabel={accessibilityLabel}
-      {...props}
+      // Android flattens layout-only views, which makes measuring them return nothing.
+      collapsable={false}
+      style={[styleProps, style]}
     >
       {children}
     </View>

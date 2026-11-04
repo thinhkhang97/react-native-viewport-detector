@@ -1,6 +1,8 @@
 # React Native Viewport Detector
 
-![example](https://github.com/thinhkhang97/react-native-viewport-detector/blob/7ca62c6e0c7ed03e70987e2eb4f7b50b13f95608/examples/example-2.gif)
+| iOS | Android |
+| :-: | :-: |
+| <img src="https://raw.githubusercontent.com/thinhkhang97/react-native-viewport-detector/master/examples/demo-ios.gif" alt="iOS demo: cards turn green while in the viewport, a nested horizontal row is tracked, and a runOnce card animates once" width="280" /> | <img src="https://raw.githubusercontent.com/thinhkhang97/react-native-viewport-detector/master/examples/demo-android.gif" alt="Android demo: cards turn green while in the viewport, a nested horizontal row is tracked, and a runOnce card animates once" width="280" /> |
 
 `react-native-viewport-detector` is a library for monitoring the visibility of React Native components within the viewport. It provides a straightforward way to track whether a child component is currently visible to the user on the screen, based on a given percentage of its width and height within the viewport.
 
@@ -68,10 +70,18 @@ function ViewComponent(): JSX.Element {
 | `frequency`     |         The frequency (in milliseconds) to check if the child is in the viewport         |  1000   |
 | `percentWidth`  | The minimum percentage of width required for the child to be considered in the viewport  |    1    |
 | `percentHeight` | The minimum percentage of height required for the child to be considered in the viewport |    1    |
+| `runOnce`       |      Stop checking after the child is first reported visible (e.g. one-off animations)      |  false  |
+| `enabled`       |  Set to `false` to pause checking, e.g. until data has loaded and the layout is final   |  true   |
+| `style`         |                                 Style for the wrapping view                                  |    –    |
 
-| API        |                         Description                          | Required |
-| ---------- | :----------------------------------------------------------: | :------: |
-| `onChange` | A callback function called when the visibility state changes |   true   |
+| API        |                                     Description                                     | Required |
+| ---------- | :---------------------------------------------------------------------------------: | :------: |
+| `onChange` | Called with the new visibility whenever it changes (not on every check) |   true   |
+
+### Notes
+
+- Both the provider and the detector are measured with `measureInWindow`, so headers, safe-area insets and providers nested inside another scroll view are handled correctly.
+- The wrapping views set `collapsable={false}`, so measuring works on Android without extra setup.
 
 ## License
 
