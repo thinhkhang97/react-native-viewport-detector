@@ -1,0 +1,49 @@
+# react-native-viewport-detector
+
+> Detect when a view enters the viewport in React Native. Works inside ScrollView, FlatList, FlashList and nested horizontal lists (visibility is clipped by every ancestor scroll container). Event-driven: no timers while idle, one batched check per scrolled frame. API mirrors the web's react-intersection-observer. Pure JS: works in Expo Go, old and new architecture, iOS and Android. React 18+, React Native 0.72+.
+
+Install: `npm install react-native-viewport-detector`
+
+## Core API
+
+- `<ViewportProvider rootMargin? pauseWhenInactive?>` — wrap exactly one scrollable (ScrollView, FlatList, FlashList, Animated.ScrollView). Required for scroll tracking. Nest providers for nested scroll views.
+- `useInView({ threshold?, rootMargin?, triggerOnce?, delay?, skip?, initialInView?, onChange?, root? })` → `{ ref, inView, entry }` (also `[ref, inView, entry]`). Attach `ref` to a host View.
+- `<InView ...sameOptions ...ViewProps>{children | ({ inView, entry }) => node}</InView>` — a View that tracks itself; with plain children + `onChange` it never re-renders.
+- `useViewportRoot({ rootMargin? })` → `{ ref, scrollProps, Provider, invalidate, handle }` for lists that cannot be wrapped.
+- Jest: `import { setupViewportMock, mockAllInView, mockInView, resetViewportMock } from 'react-native-viewport-detector/jest'`.
+
+## Canonical usage
+
+```tsx
+import { ScrollView, View } from 'react-native';
+import { ViewportProvider, useInView, InView } from 'react-native-viewport-detector';
+
+<ViewportProvider>
+  <ScrollView>{items.map(item => <Row key={item.id} item={item} />)}</ScrollView>
+</ViewportProvider>
+
+function Row({ item }) {
+  const { ref, inView } = useInView({ threshold: 0.5, triggerOnce: true });
+  return <View ref={ref}>{inView ? <Content item={item} /> : null}</View>;
+}
+
+// impression: visible ≥ 1 s, once
+<InView threshold={0.5} delay={1000} triggerOnce onChange={v => v && track(item.id)}><Ad /></InView>
+```
+
+## Rules
+
+- No `<ViewportProvider>` → measured against the window and not updated on scroll (dev warning). Use `root={null}` for static screens.
+- `threshold` is area-based (0–1). `rootMargin` is pixels; on the outermost provider it extends past the screen (preload).
+- For which FlatList rows are visible, `onViewableItemsChanged` is enough; use this library for arbitrary views and nested lists.
+- 1.x `ViewPortDetector`/`ViewPortDetectorProvider` are deprecated (still work); see docs/MIGRATION.md.
+
+## Benchmark (vs alternatives, Android, 300 rows)
+
+Rows reported wrong while scrolling: this library 8–10%, react-native-intersection-observer 24–27%, react-native-viewport-detector 1.x 26%, @futurejj/react-native-visibility-sensor 116–200%. Same frame cost as no tracking on an idle host. Details: docs/BENCHMARKS.md.
+
+## Docs
+
+- README: https://github.com/thinhkhang97/react-native-viewport-detector#readme
+- Migration: https://github.com/thinhkhang97/react-native-viewport-detector/blob/master/docs/MIGRATION.md
+- Benchmarks vs alternatives: https://github.com/thinhkhang97/react-native-viewport-detector/blob/master/docs/BENCHMARKS.md
