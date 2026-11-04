@@ -11,8 +11,9 @@ import {
   useWindowDimensions,
 } from "react-native";
 import { LayoutRectangle } from "../types";
-import { checkInViewPort } from "../utils";
+import { checkInViewPort } from "./checkInViewPort";
 import { ViewPortDetectorContext } from "./ViewPortDetectorContext";
+import { warnOnce } from "../warnOnce";
 
 // Constants
 const DEFAULT_FREQUENCY = 1000;
@@ -97,6 +98,10 @@ export const ViewPortDetector: React.FC<Props> = ({
   accessibilityLabel,
   ...styleProps
 }) => {
+  warnOnce(
+    'v1-detector',
+    'ViewPortDetector is deprecated and will be removed in v3. Use useInView() or <InView> — see docs/MIGRATION.md.'
+  );
   const view = useRef<React.ComponentRef<typeof View>>(null);
   const { measureViewport } = useContext(ViewPortDetectorContext);
   const { width: screenWidth, height: screenHeight } = useWindowDimensions();

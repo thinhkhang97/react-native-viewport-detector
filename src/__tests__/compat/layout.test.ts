@@ -1,4 +1,4 @@
-import { checkInViewPort, intersectRect } from "../layout";
+import { checkInViewPort, intersectRect } from "../../compat/checkInViewPort";
 
 describe("intersectRect", () => {
   it("returns the overlapping area", () => {

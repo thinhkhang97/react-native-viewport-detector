@@ -1,8 +1,8 @@
 import React from "react";
 import { View } from "react-native";
 import { act, render, screen } from "@testing-library/react-native";
-import { ViewPortDetector } from "../ViewPortDetector";
-import { ViewPortDetectorProvider } from "../ViewPortDetectorProvider";
+import { ViewPortDetector } from "../../compat/ViewPortDetector";
+import { ViewPortDetectorProvider } from "../../compat/ViewPortDetectorProvider";
 import { LayoutRectangle } from "../../types";
 
 const PROVIDER_ID = "provider";
