@@ -1,0 +1,25 @@
+{
+  "name": "rnvd-example",
+  "version": "1.0.0",
+  "main": "index.ts",
+  "dependencies": {
+    "@futurejj/react-native-visibility-sensor": "^1.4.19",
+    "expo": "~58.0.23",
+    "expo-status-bar": "~58.0.4",
+    "react": "19.3.0",
+    "react-native": "0.88.1",
+    "react-native-intersection-observer": "^0.3.1",
+    "rnvd-v1": "npm:react-native-viewport-detector@^1.0.8"
+  },
+  "devDependencies": {
+    "@types/react": "~19.3.0",
+    "typescript": "~6.0.3"
+  },
+  "scripts": {
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web"
+  },
+  "private": true
+}
