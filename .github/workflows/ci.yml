@@ -26,3 +26,11 @@ jobs:
       - run: npm ci
       - run: npm run typecheck
       - run: npm test -- --ci
+      - run: npm run build
+      - run: ./scripts/size-check.sh
+      - name: Check package contents
+        run: |
+          npm pack --dry-run 2>&1 | tee pack.txt
+          grep -q 'lib/module/index.js' pack.txt
+          grep -q 'lib/typescript/index.d.ts' pack.txt
+          ! grep -q '__tests__' pack.txt

@@ -1,5 +1,28 @@
 # Changelog
 
+## 2.0.0-beta.0
+
+### Added
+
+- `useInView`, `<InView>`, `<ViewportProvider>` and `useViewportRoot` with the web `react-intersection-observer` API shape: `threshold` (number or array, area-based), `rootMargin`, `triggerOnce`, `delay`, `skip`, `initialInView`, `onChange(inView, entry)`.
+- Event-driven engine: no timers while idle; while scrolling, one batched check per frame that measures one anchor view per list and only evaluates rows near the viewport.
+- Nested scroll views: each provider is clipped by its ancestors; `rootMargin` on the outer list carries into nested lists.
+- Automatic pause while the app is in the background; native-driver `Animated.event` scroll fallback.
+- `react-native-viewport-detector/jest` mock helpers.
+- Compiled output with type definitions; `llms.txt`; example app with demo, QA, benchmark and library comparison screens.
+
+### Changed
+
+- Requires React 18+ and React Native 0.72+.
+
+### Deprecated
+
+- `ViewPortDetector` and `ViewPortDetectorProvider` (unchanged behaviour, one-time dev warning; removed in 3.0). See docs/MIGRATION.md.
+
+### Removed
+
+- Support for React 17 and React Native < 0.72 (stay on 1.x).
+
 ## 1.0.8
 
 ### Fixed

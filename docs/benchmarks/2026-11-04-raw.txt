@@ -1,0 +1,36 @@
+# react-native-viewport-detector 2.0 benchmark — raw output (example/screens/Compare.tsx)
+# Expo Go SDK 58 / RN 0.88, production bundle, Pixel 7 AVD (Android 15) on an Apple-silicon Mac
+# Engine after the final-review fixes. 'cmd' = offset the script asked for, 'actual' = offset reported by onScroll (must match for a valid run).
+
+## Run E — host idle (recorded: examples/benchmark-android.gif)
+result|none|avg 16.7ms|p95 17.8ms|dropped 0%|stale 100%|settledErrors 13|idle 16.7ms|vh 596 cmd 7523 actual 7523
+result|v2|avg 16.7ms|p95 17.3ms|dropped 0%|stale 7.9%|settledErrors 0|idle 16.7ms|vh 583 cmd 7524 actual 7524
+result|v2-hook|avg 16.7ms|p95 17.3ms|dropped 0%|stale 7.9%|settledErrors 0|idle 16.6ms|vh 570 cmd 7524 actual 7524
+result|v1|avg 16.9ms|p95 19.8ms|dropped 0.3%|stale 26.5%|settledErrors 0|idle 16.7ms|vh 557 cmd 7522 actual 7522
+result|intersection-observer|avg 16.7ms|p95 17.2ms|dropped 0%|stale 23.5%|settledErrors 0|idle 16.7ms|vh 544 cmd 7519 actual 7519
+result|visibility-sensor|avg 16.6ms|p95 20.4ms|dropped 0.3%|stale 116.2%|settledErrors 9|idle 16.7ms|vh 531 cmd 7519 actual 7519
+
+## Run F — host idle
+result|none|avg 16.7ms|p95 18.4ms|dropped 0%|stale 100%|settledErrors 11|idle 16.7ms|vh 518 cmd 7519 actual 7520
+result|v2|avg 19.9ms|p95 39.7ms|dropped 9.6%|stale 10.2%|settledErrors 0|idle 16.7ms|vh 518 cmd 7502 actual 7502
+result|v2-hook|avg 16.7ms|p95 18.5ms|dropped 0%|stale 8.6%|settledErrors 0|idle 16.7ms|vh 518 cmd 7522 actual 7522
+result|v1|avg 16.7ms|p95 21ms|dropped 0.3%|stale 26.3%|settledErrors 0|idle 16.8ms|vh 518 cmd 7519 actual 7519
+result|intersection-observer|avg 17ms|p95 20.2ms|dropped 0.3%|stale 26.8%|settledErrors 0|idle 16.7ms|vh 518 cmd 7526 actual 7526
+result|visibility-sensor|avg 176.5ms|p95 422ms|dropped 100%|stale 200.2%|settledErrors 10|idle 307.6ms|vh 518 cmd 7616 actual 7616
+
+## Runs C and D — iOS simulator running at the same time (host under load)
+result|none|avg 19.5ms|p95 36.1ms|dropped 18%|stale 100%|settledErrors 13|idle 17ms|vh 596 cmd 7504 actual 7504
+result|v2|avg 20.1ms|p95 36.4ms|dropped 18.5%|stale 8.7%|settledErrors 0|idle 17.5ms|vh 583 cmd 7502 actual 7501
+result|v2-hook|avg 21.4ms|p95 37.2ms|dropped 26.6%|stale 9.8%|settledErrors 1|idle 18ms|vh 570 cmd 7510 actual 7510
+result|v1|avg 21.2ms|p95 43.5ms|dropped 24.6%|stale 28.8%|settledErrors 0|idle 20.4ms|vh 557 cmd 7534 actual 7534
+result|intersection-observer|avg 22.5ms|p95 41.2ms|dropped 27.4%|stale 30.2%|settledErrors 0|idle 17.1ms|vh 544 cmd 7535 actual 7535
+result|visibility-sensor|avg 67.5ms|p95 158.7ms|dropped 68.9%|stale 208.1%|settledErrors 9|idle 17.6ms|vh 531 cmd 7519 actual 7519
+
+result|none|avg 20.6ms|p95 37.9ms|dropped 20.2%|stale 100%|settledErrors 11|idle 16.7ms|vh 518 cmd 7531 actual 7531
+result|v2|avg 22.1ms|p95 37ms|dropped 27.4%|stale 11.8%|settledErrors 0|idle 16.9ms|vh 518 cmd 7524 actual 7524
+result|v2-hook|avg 22.2ms|p95 39.5ms|dropped 28.9%|stale 11.8%|settledErrors 0|idle 16.6ms|vh 518 cmd 7516 actual 7516
+result|v1|avg 22.6ms|p95 46.5ms|dropped 27.6%|stale 32.9%|settledErrors 1|idle 20.8ms|vh 518 cmd 7510 actual 7510
+result|intersection-observer|avg 22ms|p95 38.8ms|dropped 24.2%|stale 30.8%|settledErrors 0|idle 17ms|vh 518 cmd 7518 actual 7518
+result|visibility-sensor|avg 69.3ms|p95 156.1ms|dropped 58.9%|stale 203.8%|settledErrors 11|idle 17.9ms|vh 518 cmd 7608 actual 7608
+
+## iOS 18.1 simulator: not published for this engine — in 3 of 4 attempts the simulator did not keep up with the scripted scroll (actual offset 600–5849 vs 7524 commanded), so the ground truth was invalid.

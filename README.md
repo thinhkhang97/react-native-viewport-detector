@@ -1,87 +1,201 @@
-# React Native Viewport Detector
+# react-native-viewport-detector
+
+**Detect when a view enters the viewport in React Native — works in ScrollView, FlatList, FlashList and nested horizontal lists. Event-driven, zero idle cost, Expo Go ready.**
 
 | iOS | Android |
 | :-: | :-: |
-| <img src="https://raw.githubusercontent.com/thinhkhang97/react-native-viewport-detector/master/examples/demo-ios.gif" alt="iOS demo: cards turn green while in the viewport, a nested horizontal row is tracked, and a runOnce card animates once" width="280" /> | <img src="https://raw.githubusercontent.com/thinhkhang97/react-native-viewport-detector/master/examples/demo-android.gif" alt="Android demo: cards turn green while in the viewport, a nested horizontal row is tracked, and a runOnce card animates once" width="280" /> |
+| <img src="https://raw.githubusercontent.com/thinhkhang97/react-native-viewport-detector/master/examples/demo-ios.gif" alt="iOS demo: cards turn green while in the viewport, a nested horizontal row is tracked, and a triggerOnce card animates once" width="280" /> | <img src="https://raw.githubusercontent.com/thinhkhang97/react-native-viewport-detector/master/examples/demo-android.gif" alt="Android demo: cards turn green while in the viewport, a nested horizontal row is tracked, and a triggerOnce card animates once" width="280" /> |
 
-`react-native-viewport-detector` is a library for monitoring the visibility of React Native components within the viewport. It provides a straightforward way to track whether a child component is currently visible to the user on the screen, based on a given percentage of its width and height within the viewport.
+- **Familiar API** — `useInView`, `<InView>`, `threshold`, `rootMargin`, `triggerOnce`: the same shape as the web's [`react-intersection-observer`](https://github.com/thebuilder/react-intersection-observer).
+- **Accurate where others guess** — visibility is clipped by the scroll container *and* every ancestor container, so items in a horizontal carousel inside a vertical list, behind a header, or under a safe-area inset report the truth.
+- **Event-driven** — no timers while nothing moves; while scrolling, one batched check per frame that measures one anchor view per list instead of every item.
+- **Impression-ready** — `delay` (dwell time), automatic pause when the app goes to the background, `skip` for screen focus.
+- **Expo Go, old & new architecture, iOS & Android.** No native code. Ships compiled JS + types and a Jest mock.
 
-## Features
-
-- Determine if a React Native component is in the viewport based on a specified percentage of its dimensions.
-- Simple and easy-to-use API for tracking component visibility.
-- Suitable for various use cases, such as lazy loading, animations, or tracking user interactions.
-
-## Installation
-
-To use `react-native-viewport-detector` in your React Native project, you need to install it via npm or yarn:
+## Install
 
 ```bash
 npm install react-native-viewport-detector
-# or
-yarn add react-native-viewport-detector
 ```
 
-## Usage
+Requires React 18+ and React Native 0.72+. (Older apps: stay on `1.x`.)
 
-The `ViewPortDetectorProvider` component should be the first nested component and wrap a scrollable view in your screen to detect exactly the viewport position when user scrolls. If you don't wrap your scrollview with the provider, the component will use the default viewport which is {x: 0, y: 0, width: SCREEN_WIDTH, height: SCREEN_HEIGHT}
+## Quick start
+
+Wrap the scroll view once, then ask any descendant whether it is visible:
 
 ```tsx
-import React, { useState } from "react";
-import { SafeAreaView, ScrollView, StyleSheet, View } from "react-native";
-import {
-  ViewPortDetector,
-  ViewPortDetectorProvider,
-} from "react-native-viewport-detector";
+import { ScrollView, View } from 'react-native';
+import { ViewportProvider, useInView } from 'react-native-viewport-detector';
 
-function App(): JSX.Element {
+export function Feed() {
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header} />
-      <ViewPortDetectorProvider flex={1}>
-        <ScrollView>
-          {Array.from({ length: 10 }).map((_, index) => (
-            <ViewComponent key={`app_item_${index}`} />
-          ))}
-        </ScrollView>
-      </ViewPortDetectorProvider>
-    </SafeAreaView>
+    <ViewportProvider>
+      <ScrollView>
+        {posts.map(post => <Post key={post.id} post={post} />)}
+      </ScrollView>
+    </ViewportProvider>
   );
 }
 
-function ViewComponent(): JSX.Element {
-  const [inViewPort, setInViewPort] = useState(false);
-  return (
-    <ViewPortDetector
-      onChange={setInViewPort}
-      percentHeight={0.7}
-      frequency={300}
-    >
-      <View style={[styles.item, inViewPort ? styles.inViewPort : undefined]} />
-    </ViewPortDetector>
-  );
+function Post({ post }) {
+  const { ref, inView } = useInView({ threshold: 0.5 });
+  return <View ref={ref}>{/* ... */}</View>;
 }
+```
+
+`<ViewportProvider>` wraps exactly one scrollable child and adds its own `onScroll`/`onLayout` handlers next to yours — it never replaces them.
+
+## Recipes
+
+**Lazy-load an image** — start loading 300 px before it scrolls in:
+
+```tsx
+const { ref, inView } = useInView({ triggerOnce: true, rootMargin: { bottom: 300 } });
+return <View ref={ref}>{inView ? <Image source={{ uri }} /> : <Placeholder />}</View>;
+```
+
+**Auto-play / pause video:**
+
+```tsx
+const { ref, inView } = useInView({ threshold: 0.75 });
+return <View ref={ref}><Video paused={!inView} source={source} /></View>;
+```
+
+**Count an impression** — visible for at least one second, once:
+
+```tsx
+<InView threshold={0.5} delay={1000} triggerOnce onChange={seen => seen && track('impression', id)}>
+  <AdCard />
+</InView>
+```
+
+**Animate once when it appears:**
+
+```tsx
+<InView triggerOnce onChange={visible => visible && fadeIn.start()}>
+  <Animated.View style={{ opacity }} />
+</InView>
+```
+
+**Infinite list trigger:**
+
+```tsx
+<InView rootMargin={{ bottom: 600 }} onChange={near => near && loadMore()} />
+```
+
+**Pause while the screen is not focused (React Navigation):**
+
+```tsx
+const isFocused = useIsFocused();
+const { ref, inView } = useInView({ skip: !isFocused });
+```
+
+**Nested carousel** — just nest providers; items are clipped by both lists:
+
+```tsx
+<ViewportProvider>
+  <ScrollView>
+    <ViewportProvider>
+      <ScrollView horizontal>{cards}</ScrollView>
+    </ViewportProvider>
+  </ScrollView>
+</ViewportProvider>
+```
+
+**FlatList / FlashList / Legend List** — wrap them like a ScrollView; if a list does not forward scroll props, wire it by hand:
+
+```tsx
+const root = useViewportRoot({ rootMargin: 100 });
+return (
+  <root.Provider>
+    <FlashList ref={root.ref} {...root.scrollProps} data={data} renderItem={renderItem} />
+  </root.Provider>
+);
 ```
 
 ## API
 
-| Properties      |                                       Description                                        | Default |
-| --------------- | :--------------------------------------------------------------------------------------: | :-----: |
-| `frequency`     |         The frequency (in milliseconds) to check if the child is in the viewport         |  1000   |
-| `percentWidth`  | The minimum percentage of width required for the child to be considered in the viewport  |    1    |
-| `percentHeight` | The minimum percentage of height required for the child to be considered in the viewport |    1    |
-| `runOnce`       |      Stop checking after the child is first reported visible (e.g. one-off animations)      |  false  |
-| `enabled`       |  Set to `false` to pause checking, e.g. until data has loaded and the layout is final   |  true   |
-| `style`         |                                 Style for the wrapping view                                  |    –    |
+### `useInView(options?)`
 
-| API        |                                     Description                                     | Required |
-| ---------- | :---------------------------------------------------------------------------------: | :------: |
-| `onChange` | Called with the new visibility whenever it changes (not on every check) |   true   |
+Returns `{ ref, inView, entry }` (also `[ref, inView, entry]`). Attach `ref` to any host view.
 
-### Notes
+| Option | Type | Default | Description |
+| --- | --- | --- | --- |
+| `threshold` | `number \| number[]` | `0` | Visible share of the view's area that counts as "in view". `onChange` fires whenever any threshold is crossed. |
+| `rootMargin` | `number \| { top, right, bottom, left }` | `0` | Pixels added around the container for this view (negative shrinks). |
+| `triggerOnce` | `boolean` | `false` | Stop observing after the first time the view is in view. |
+| `delay` | `number` | `0` | Milliseconds the view must stay in view before `inView` becomes `true`. Leaving is reported immediately. |
+| `skip` | `boolean` | `false` | Pause observing (keeps the last state). |
+| `initialInView` | `boolean` | `false` | Value before the first measurement. |
+| `onChange` | `(inView, entry) => void` | — | Called on every threshold crossing. |
+| `root` | `null` | — | Pass `null` on a static screen to measure against the window without a provider warning. |
 
-- Both the provider and the detector are measured with `measureInWindow`, so headers, safe-area insets and providers nested inside another scroll view are handled correctly.
-- The wrapping views set `collapsable={false}`, so measuring works on Android without extra setup.
+`entry` has `isIntersecting`, `intersectionRatio` (0–1, by area), `boundingClientRect`, `intersectionRect`, `rootBounds` and `time`.
+
+### `<InView>`
+
+A `View` that tracks itself. Takes the same options plus `ViewProps`. Children can be nodes or a render function `({ inView, entry }) => node`. With plain children and `onChange`, it never re-renders on visibility changes.
+
+### `<ViewportProvider>`
+
+| Prop | Default | Description |
+| --- | --- | --- |
+| `rootMargin` | `0` | Margin around this container. On the outermost container it extends past the screen edge (preloading); it carries into nested containers. |
+| `pauseWhenInactive` | `true` | Report everything out of view while the app is in the background, re-check on return. |
+
+### `useViewportRoot(options?)`
+
+Returns `{ ref, scrollProps, Provider, invalidate, handle }` for lists that cannot be wrapped. Call `invalidate()` after a change the library cannot see (e.g. a parent's transform animation).
+
+## When to use it — and when not
+
+| You need | Use |
+| --- | --- |
+| Which **rows** of a FlatList/FlashList are visible | The list's own `onViewableItemsChanged` — it already has the layout. |
+| Visibility of **any view** (a child inside a row, a carousel card, a section in a ScrollView) | This library. |
+| Visibility inside **nested** scroll views | This library — the alternatives below don't clip by ancestors. |
+| Visibility while scrolling with a native-driver `Animated.event` | Works (checks every frame during touch/momentum) — full support is planned with the Reanimated engine. |
+
+### Compared with alternatives
+
+300 rows, scripted scroll at 1500 px/s for 5 s, same layout for every library, Android 15 emulator, production build. "Wrong while scrolling" = share of truly visible rows reported wrong at each frame. Full method, all runs and raw output: [docs/BENCHMARKS.md](docs/BENCHMARKS.md).
+
+| | Wrong while scrolling | Wrong after scrolling stops | Nested scroll views | Idle cost |
+| --- | --- | --- | --- | --- |
+| **react-native-viewport-detector 2.0** | **8–10%** | **0** | ✅ | none |
+| react-native-intersection-observer 0.3 | 24–27% | 0 | ❌ (documented) | none |
+| react-native-viewport-detector 1.0.8 | 26% | 0 | ✅ | timer per item |
+| @futurejj/react-native-visibility-sensor 1.4 | 116–200% | 9–10 | window only | timer per item |
+
+With the host idle, 2.0's scroll-time JS cost was indistinguishable from no tracking (16.7 ms frames).
+
+## Testing your components
+
+```ts
+import { setupViewportMock, mockAllInView, mockInView, resetViewportMock } from 'react-native-viewport-detector/jest';
+
+beforeEach(() => setupViewportMock());
+afterEach(() => resetViewportMock());
+
+it('tracks an impression', () => {
+  render(<Feed />);
+  act(() => mockInView('ad-1', 0.6)); // by testID
+  expect(track).toHaveBeenCalledWith('impression', 'ad-1');
+});
+```
+
+## Upgrading from 1.x
+
+`ViewPortDetector` and `ViewPortDetectorProvider` still work in 2.0 exactly as in 1.0.8 (they log a one-time deprecation warning in development) and will be removed in 3.0. See [docs/MIGRATION.md](docs/MIGRATION.md).
+
+## Example app
+
+`example/` is an Expo app with a demo, a QA checklist, a 1,000-item benchmark, the library comparison and the 1.x example:
+
+```bash
+cd example && npm install && npx expo start
+```
 
 ## License
 
