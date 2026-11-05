@@ -1,6 +1,6 @@
 # Benchmarks
 
-Measured on 2026-11-04 (engine after the final review) with the example app (`example/screens/Compare.tsx`, `example/bench/*`). Raw output: [benchmarks/2026-11-04-raw.txt](benchmarks/2026-11-04-raw.txt).
+Measured on 2026-11-04 (Android) and 2026-11-05 (iOS Simulator), engine after the final review with the example app (`example/screens/Compare.tsx`, `example/bench/*`). Raw output: [benchmarks/2026-11-04-raw.txt](benchmarks/2026-11-04-raw.txt).
 
 ## Method
 
@@ -14,7 +14,7 @@ Measured on 2026-11-04 (engine after the final review) with the example app (`ex
   - **Dropped** — frames longer than 25 ms.
   - **Wrong while scrolling** — per frame, rows reported wrong ÷ rows truly visible, averaged. Values over 100% mean a library also reports many invisible rows as visible.
   - **Wrong after stop** — rows still reported wrong 1 s after scrolling stopped.
-- Builds: Expo Go SDK 58, React Native 0.88, production bundle (`expo start --no-dev --minify`) on a Pixel 7 emulator (Android 15), Apple-silicon Mac. A run counts only if the offset native reported matches the scripted one. Emulators are noisier than phones; run it on your own device from the example app.
+- Builds: Expo Go SDK 58, React Native 0.88, production bundle (`expo start --no-dev --minify`) on a Pixel 7 emulator (Android 15) and an iPhone 16 Pro simulator (iOS 18.1), Apple-silicon Mac. A run counts only if the offset native reported matches the scripted one and the control reports 100% wrong. Emulators and simulators are not phones: the simulator runs on the Mac's CPU, so its frame times are optimistic. Run it on your own device from the example app.
 
 ## Results
 
@@ -47,13 +47,22 @@ Measured on 2026-11-04 (engine after the final review) with the example app (`ex
 | react-native-intersection-observer 0.3.1 | 22.0–22.5 ms | 24–27% | 30.2–30.8% | 0 |
 | @futurejj/react-native-visibility-sensor 1.4.19 | 67.5–69.3 ms | 59–69% | 203.8–208.1% | 9–11 |
 
-### iOS
+### iOS 18.1 Simulator (iPhone 16 Pro), host idle (runs G and H)
 
-Not published for this version. On the iPhone 16 Pro simulator the scripted `scrollTo` did not keep up in 3 of 4 attempts (the offset native reported lagged far behind the one requested), which invalidates the ground truth. Run the Compare screen on an iPhone to measure iOS.
+| Library | Frame avg | p95 | Dropped | Wrong while scrolling | Wrong after stop |
+| --- | --- | --- | --- | --- | --- |
+| No tracking (control) | 16.7 ms | 16.9–17.3 ms | 0% | — | — |
+| **viewport-detector 2.0 `<InView onChange>`** | 16.7 ms | 17.4–17.5 ms | 0% | **8.3%** | **0** |
+| viewport-detector 2.0 `useInView` | 16.7 ms | 17.5–17.6 ms | 0% | 8.7% | 0 |
+| viewport-detector 1.0.8 | 16.6–16.7 ms | 17.6–17.8 ms | 0% | 33.1–33.7% | 0 |
+| react-native-intersection-observer 0.3.1 | 16.7 ms | 17.5 ms | 0% | 26.3–26.5% | 0 |
+| @futurejj/react-native-visibility-sensor 1.4.19 | 16.7–16.8 ms | 19.3–27.9 ms | 0–10.4% | 110–111.6% | 8–9 |
+
+The simulator runs on the Mac's CPU, so read the frame columns as "no library is expensive here", not as phone numbers. The accuracy columns compare the libraries fairly. No iPhone numbers yet; contributions from the Compare screen are welcome.
 
 ## Reading the numbers
 
-- **Accuracy:** 2.0 reports about 3× fewer wrong rows while scrolling than the next best (8–12% vs 23–33%), because it re-checks on every frame that scrolled instead of on a 100 ms throttle or a polling timer. The remainder is a one-frame lag at the leading and trailing edges.
+- **Accuracy:** 2.0 reports about 3× fewer wrong rows while scrolling than the next best on both platforms (8–12% vs 23–34%), because it re-checks on every frame that scrolled instead of on a 100 ms throttle or a polling timer. The remainder is a one-frame lag at the leading and trailing edges.
 - **Cost:** with the host idle, 2.0, 1.0.8 and react-native-intersection-observer are indistinguishable from no tracking (16.7 ms frames). Under load all of them lose frames at a similar rate. Each 2.0 scroll frame measures the targets near the viewport (about 15–25 views here), not the whole list.
 - **Robustness:** 2.0 takes the list's movement from the median of the measured views, so a recycled cell (FlashList) or a sticky header moving on its own cannot shift every other row.
 - **Re-rendering is the app's cost:** if every row repaints when it changes visibility, a 1,000-row `ScrollView` spends most of its time in React commits regardless of the library. Use FlatList/FlashList for long lists.

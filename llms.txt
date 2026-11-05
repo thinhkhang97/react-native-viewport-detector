@@ -38,9 +38,9 @@ function Row({ item }) {
 - For which FlatList rows are visible, `onViewableItemsChanged` is enough; use this library for arbitrary views and nested lists.
 - 1.x `ViewPortDetector`/`ViewPortDetectorProvider` are deprecated (still work); see docs/MIGRATION.md.
 
-## Benchmark (vs alternatives, Android, 300 rows)
+## Benchmark (vs alternatives, Android emulator + iOS simulator, 300 rows)
 
-Rows reported wrong while scrolling: this library 8–10%, react-native-intersection-observer 24–27%, react-native-viewport-detector 1.x 26%, @futurejj/react-native-visibility-sensor 116–200%. Same frame cost as no tracking on an idle host. Details: docs/BENCHMARKS.md.
+Rows reported wrong while scrolling (Android / iOS): this library 8–10% / 8%, react-native-intersection-observer 24–27% / 26%, react-native-viewport-detector 1.x 26% / 33–34%, @futurejj/react-native-visibility-sensor 116–200% / 110–112%. Same frame cost as no tracking on an idle host. Details: docs/BENCHMARKS.md.
 
 ## Docs
 

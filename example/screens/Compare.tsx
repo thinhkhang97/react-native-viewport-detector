@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { BenchList, LIBRARIES, type LibraryId } from '../bench/adapters';
 import { useBenchRun, type BenchResult } from '../bench/useBenchRun';
@@ -13,8 +13,13 @@ export function Compare() {
   const [results, setResults] = useState<Results>({});
   const [status, setStatus] = useState('idle');
   const bench = useBenchRun(COUNT);
+  // A second tap while a run is in progress would interleave two runs and corrupt both.
+  const running = useRef(false);
 
   const runAll = async () => {
+    if (running.current) return;
+    running.current = true;
+    setResults({});
     for (const { id } of LIBRARIES) {
       setStatus(`running ${id}`);
       bench.reset();
@@ -24,6 +29,7 @@ export function Compare() {
     }
     setLibrary(null);
     setStatus('done');
+    running.current = false;
   };
 
   return (
