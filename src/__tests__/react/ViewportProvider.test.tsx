@@ -92,7 +92,7 @@ describe('ViewportProvider', () => {
 
   it("still forwards the child's function and object refs", () => {
     const fnRef = jest.fn();
-    const objRef = React.createRef<ScrollView>();
+    const objRef = React.createRef<React.ComponentRef<typeof ScrollView>>();
     render(
       <View>
         <ViewportProvider>

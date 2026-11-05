@@ -290,7 +290,8 @@ export function createJsEventEngine(deps: Deps = {}): Engine {
   function notify(updates: Update[]) {
     if (updates.length === 0) return;
     stats.notifications += updates.length;
-    unstable_batchedUpdates(() => updates.forEach(([target, entry]) => target.cb(entry)));
+    // The second argument is unused at runtime; RN >= 0.88 types require it.
+    unstable_batchedUpdates(() => updates.forEach(([target, entry]) => target.cb(entry)), null);
   }
 
   function reportAllOut() {
