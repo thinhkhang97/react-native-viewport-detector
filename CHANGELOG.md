@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.0.0-beta.1
+
+### Documentation
+
+- README, CHANGELOG and migration guide now describe the shipped scroll engine (views near the viewport, median offset) instead of the earlier single-anchor design. No code changes.
+
 ## 2.0.0-beta.0
 
 ### Added
