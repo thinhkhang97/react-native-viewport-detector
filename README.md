@@ -8,7 +8,7 @@
 
 - **Familiar API** — `useInView`, `<InView>`, `threshold`, `rootMargin`, `triggerOnce`: the same shape as the web's [`react-intersection-observer`](https://github.com/thebuilder/react-intersection-observer).
 - **Accurate where others guess** — visibility is clipped by the scroll container *and* every ancestor container, so items in a horizontal carousel inside a vertical list, behind a header, or under a safe-area inset report the truth.
-- **Event-driven** — no timers while nothing moves; while scrolling, one batched check per frame that measures one anchor view per list instead of every item.
+- **Event-driven** — no timers while nothing moves; while scrolling, one batched check per frame that measures only the views near the viewport, not every item.
 - **Impression-ready** — `delay` (dwell time), automatic pause when the app goes to the background, `skip` for screen focus.
 - **Expo Go, old & new architecture, iOS & Android.** No native code. Ships compiled JS + types and a Jest mock.
 

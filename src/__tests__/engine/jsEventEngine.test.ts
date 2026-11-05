@@ -215,7 +215,7 @@ describe('JsEventEngine scroll passes', () => {
     expect(engine.getStats().measurements - before).toBe(3); // root + a + b; c is far below
   });
 
-  it('moves un-measured targets by the anchor offset', () => {
+  it('moves un-measured targets by the list offset', () => {
     const { root, targets } = threeTargets();
     expect(targets.c.cb).toHaveBeenLastCalledWith(expect.objectContaining({ isIntersecting: false }));
     scrollBy(400);
@@ -239,7 +239,7 @@ describe('JsEventEngine scroll passes', () => {
     const before = engine.getStats().measurements;
     engine.invalidate('scroll-end', root);
     jest.advanceTimersByTime(200);
-    expect(engine.getStats().measurements - before).toBe(3); // root + a (anchor) + b; c is far below
+    expect(engine.getStats().measurements - before).toBe(3); // root + a + b; c is far below
   });
 
   it('waits for scrolling to settle before the scroll-end re-measure', () => {
@@ -335,7 +335,7 @@ describe('JsEventEngine at scale', () => {
     setRect('a', { x: 0, y: 2000, width: 390, height: 100 });
     handle.refresh();
     frame();
-    expect(engine.getStats().measurements - before).toBe(3); // root + anchor + a
+    expect(engine.getStats().measurements - before).toBe(3); // root + a (refreshed) + b (near)
     expect(cb).toHaveBeenLastCalledWith(expect.objectContaining({ isIntersecting: false }));
   });
 });

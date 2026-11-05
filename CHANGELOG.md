@@ -5,7 +5,7 @@
 ### Added
 
 - `useInView`, `<InView>`, `<ViewportProvider>` and `useViewportRoot` with the web `react-intersection-observer` API shape: `threshold` (number or array, area-based), `rootMargin`, `triggerOnce`, `delay`, `skip`, `initialInView`, `onChange(inView, entry)`.
-- Event-driven engine: no timers while idle; while scrolling, one batched check per frame that measures one anchor view per list and only evaluates rows near the viewport.
+- Event-driven engine: no timers while idle; while scrolling, one batched check per frame that measures only the views near the viewport and takes the list's movement from their median, so a recycled cell or sticky header cannot shift the rest.
 - Nested scroll views: each provider is clipped by its ancestors; `rootMargin` on the outer list carries into nested lists.
 - Automatic pause while the app is in the background; native-driver `Animated.event` scroll fallback.
 - `react-native-viewport-detector/jest` mock helpers.
