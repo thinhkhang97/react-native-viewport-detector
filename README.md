@@ -159,14 +159,14 @@ Returns `{ ref, scrollProps, Provider, invalidate, handle }` for lists that cann
 
 ### Compared with alternatives
 
-300 rows, scripted scroll at 1500 px/s for 5 s, same layout for every library, Android 15 emulator, production build. "Wrong while scrolling" = share of truly visible rows reported wrong at each frame. Full method, all runs and raw output: [docs/BENCHMARKS.md](docs/BENCHMARKS.md).
+300 rows, scripted scroll at 1500 px/s for 5 s, same layout for every library, production build, on an Android 15 emulator and an iPhone 16 Pro simulator (iOS 18.1). "Wrong while scrolling" = share of truly visible rows reported wrong at each frame. Full method, all runs and raw output: [docs/BENCHMARKS.md](docs/BENCHMARKS.md).
 
-| | Wrong while scrolling | Wrong after scrolling stops | Nested scroll views | Idle cost |
+| | Wrong while scrolling (Android / iOS) | Wrong after scrolling stops | Nested scroll views | Idle cost |
 | --- | --- | --- | --- | --- |
-| **react-native-viewport-detector 2.0** | **8–10%** | **0** | ✅ | none |
-| react-native-intersection-observer 0.3 | 24–27% | 0 | ❌ (documented) | none |
-| react-native-viewport-detector 1.0.8 | 26% | 0 | ✅ | timer per item |
-| @futurejj/react-native-visibility-sensor 1.4 | 116–200% | 9–10 | window only | timer per item |
+| **react-native-viewport-detector 2.0** | **8–10% / 8%** | **0** | ✅ | none |
+| react-native-intersection-observer 0.3 | 24–27% / 26% | 0 | ❌ (documented) | none |
+| react-native-viewport-detector 1.0.8 | 26% / 33–34% | 0 | ✅ | timer per item |
+| @futurejj/react-native-visibility-sensor 1.4 | 116–200% / 110–112% | 8–10 | window only | timer per item |
 
 With the host idle, 2.0's scroll-time JS cost was indistinguishable from no tracking (16.7 ms frames).
 

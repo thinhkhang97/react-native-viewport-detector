@@ -42,6 +42,8 @@ export function useBenchRun(count: number) {
   const scrollRef = useRef<React.ComponentRef<typeof ScrollView>>(null);
   const viewport = useRef(0);
   const actualOffset = useRef(0);
+  const scrollEvents = useRef(0);
+  const maxSeen = useRef(0);
 
   const report = useCallback<Report>((index, visible) => {
     if (visible) reported.current.add(index);
@@ -98,15 +100,21 @@ export function useBenchRun(count: number) {
       stalePct: round(avg(stale) * 100),
       settledErrors: mismatches(actualOffset.current).wrong,
       idleFrameAvg: round(avg(idle)),
-      debug: `vh ${Math.round(viewport.current)} cmd ${Math.round(previous)} actual ${Math.round(actualOffset.current)}`,
+      debug: `vh ${Math.round(viewport.current)} cmd ${Math.round(previous)} actual ${Math.round(actualOffset.current)} max ${Math.round(maxSeen.current)} ev ${scrollEvents.current}`,
     };
   }, [count, mismatches]);
 
   const reset = useCallback(() => {
     reported.current.clear();
     actualOffset.current = 0;
+    scrollEvents.current = 0;
+    maxSeen.current = 0;
   }, []);
-  const onScroll = useCallback((y: number) => (actualOffset.current = y), []);
+  const onScroll = useCallback((y: number) => {
+    actualOffset.current = y;
+    scrollEvents.current += 1;
+    maxSeen.current = Math.max(maxSeen.current, y);
+  }, []);
   const onLayout = useCallback((h: number) => (viewport.current = h), []);
 
   return { report, scrollRef, onLayout, onScroll, run, reset };

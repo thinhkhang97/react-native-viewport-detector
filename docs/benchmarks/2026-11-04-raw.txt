@@ -33,4 +33,24 @@ result|v1|avg 22.6ms|p95 46.5ms|dropped 27.6%|stale 32.9%|settledErrors 1|idle 2
 result|intersection-observer|avg 22ms|p95 38.8ms|dropped 24.2%|stale 30.8%|settledErrors 0|idle 17ms|vh 518 cmd 7518 actual 7518
 result|visibility-sensor|avg 69.3ms|p95 156.1ms|dropped 58.9%|stale 203.8%|settledErrors 11|idle 17.9ms|vh 518 cmd 7608 actual 7608
 
-## iOS 18.1 simulator: not published for this engine — in 3 of 4 attempts the simulator did not keep up with the scripted scroll (actual offset 600–5849 vs 7524 commanded), so the ground truth was invalid.
+## iOS 18.1 simulator (iPhone 16 Pro), host idle — measured 2026-11-05
+# Same build and engine. 'max' = largest offset onScroll reported, 'ev' = onScroll events during the run.
+# The earlier iOS attempts were invalid because a delayed simulator tap started a second "Run all" while the first was running;
+# Compare now ignores Run all while a run is in progress.
+
+## Run G
+result|none|avg 16.7ms|p95 17.3ms|dropped 0%|stale 100%|settledErrors 13|idle 16.7ms|vh 574 cmd 7500 actual 7500 max 7500 ev 300
+result|v2|avg 16.7ms|p95 17.5ms|dropped 0%|stale 8.3%|settledErrors 0|idle 16.7ms|vh 547 cmd 7524 actual 7524 max 7524 ev 301
+result|v2-hook|avg 16.7ms|p95 17.6ms|dropped 0%|stale 8.7%|settledErrors 0|idle 16.7ms|vh 534 cmd 7524 actual 7524 max 7524 ev 301
+result|v1|avg 16.6ms|p95 17.8ms|dropped 0%|stale 33.1%|settledErrors 0|idle 16.7ms|vh 508 cmd 7524 actual 7524 max 7524 ev 301
+result|intersection-observer|avg 16.7ms|p95 17.5ms|dropped 0%|stale 26.5%|settledErrors 0|idle 16.7ms|vh 495 cmd 7502 actual 7502 max 7502 ev 300
+result|visibility-sensor|avg 16.8ms|p95 27.9ms|dropped 10.4%|stale 111.6%|settledErrors 9|idle 16.7ms|vh 469 cmd 7513 actual 7513 max 7513 ev 298
+
+## Run H
+result|none|avg 16.7ms|p95 16.9ms|dropped 0%|stale 100%|settledErrors 12|idle 16.7ms|vh 574 cmd 7524 actual 7524 max 7524 ev 301
+result|v2|avg 16.7ms|p95 17.4ms|dropped 0%|stale 8.3%|settledErrors 0|idle 16.7ms|vh 547 cmd 7500 actual 7500 max 7500 ev 300
+result|v2-hook|avg 16.7ms|p95 17.5ms|dropped 0%|stale 8.7%|settledErrors 0|idle 16.7ms|vh 534 cmd 7525 actual 7525 max 7525 ev 301
+result|v1|avg 16.7ms|p95 17.6ms|dropped 0%|stale 33.7%|settledErrors 0|idle 16.7ms|vh 508 cmd 7525 actual 7525 max 7525 ev 301
+result|intersection-observer|avg 16.7ms|p95 17.5ms|dropped 0%|stale 26.3%|settledErrors 0|idle 16.7ms|vh 495 cmd 7525 actual 7525 max 7525 ev 301
+result|visibility-sensor|avg 16.7ms|p95 19.3ms|dropped 0%|stale 110%|settledErrors 8|idle 16.7ms|vh 469 cmd 7525 actual 7525 max 7525 ev 301
+
