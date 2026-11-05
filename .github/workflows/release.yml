@@ -6,7 +6,7 @@ on:
 
 permissions:
   contents: read
-  id-token: write # npm provenance
+  id-token: write # npm trusted publishing (OIDC) + provenance
 
 jobs:
   publish:
@@ -19,7 +19,8 @@ jobs:
         with:
           node-version: 22
           cache: npm
-          registry-url: https://registry.npmjs.org
+      # Trusted publishing needs npm >= 11.5.1; Node 22 ships npm 10.
+      - run: npm install -g npm@^11.5.1
       - run: npm ci
       - run: npm run typecheck
       - run: npm test -- --ci
@@ -28,6 +29,5 @@ jobs:
       - name: Check the tag matches package.json
         run: test "v$(node -p 'require("./package.json").version')" = "${GITHUB_REF_NAME}"
       - name: Publish (prereleases go to the "next" dist-tag)
+        # No token: npm authenticates this workflow via OIDC (npmjs.com → package Settings → Trusted Publisher).
         run: npm publish --provenance --access public --tag ${{ contains(github.ref_name, '-') && 'next' || 'latest' }}
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
