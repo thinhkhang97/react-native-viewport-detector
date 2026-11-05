@@ -55,11 +55,19 @@ const { ref, inView } = useInView({ triggerOnce: true, rootMargin: { bottom: 300
 return <View ref={ref}>{inView ? <Image source={{ uri }} /> : <Placeholder />}</View>;
 ```
 
-**Auto-play / pause video:**
+**Auto-play / pause video** — the threshold applies to the video's own view, not the whole row, and a video inside a nested carousel is clipped by both lists (`expo-video` shown; any player works):
 
 ```tsx
-const { ref, inView } = useInView({ threshold: 0.75 });
-return <View ref={ref}><Video paused={!inView} source={source} /></View>;
+function FeedVideo({ source }) {
+  const player = useVideoPlayer(source, p => (p.loop = true));
+  const { ref, inView } = useInView({ threshold: 0.75 });
+  useEffect(() => (inView ? player.play() : player.pause()), [inView, player]);
+  return (
+    <View ref={ref} collapsable={false}>
+      <VideoView player={player} style={{ aspectRatio: 16 / 9 }} />
+    </View>
+  );
+}
 ```
 
 **Count an impression** — visible for at least one second, once:
@@ -114,6 +122,27 @@ return (
 );
 ```
 
+**Recycling lists (FlashList, Legend List)** — a recycled cell keeps its React state, so the hook's state belongs to the *cell*, not to the item it currently shows. `inView` is always right for what is on screen, but `triggerOnce` stops the cell for good: the next item recycled into it is never reported. For "once per item" (impressions, lazy-load), dedupe by item id instead of using `triggerOnce`:
+
+```tsx
+const seen = new Set<string>(); // module- or screen-level, not per cell
+
+function Banner({ item }) {
+  return (
+    <InView threshold={0.5} delay={1000} onChange={visible => {
+      if (visible && !seen.has(item.id)) {
+        seen.add(item.id);
+        track('impression', item.id);
+      }
+    }}>
+      <BannerCard item={item} />
+    </InView>
+  );
+}
+```
+
+(Alternatively give the tracked component `key={item.id}` so it remounts per item — simpler, but it gives up recycling for that subtree.)
+
 ## API
 
 ### `useInView(options?)`
@@ -155,6 +184,7 @@ Returns `{ ref, scrollProps, Provider, invalidate, handle }` for lists that cann
 | Which **rows** of a FlatList/FlashList are visible | The list's own `onViewableItemsChanged` — it already has the layout. |
 | Visibility of **any view** (a child inside a row, a carousel card, a section in a ScrollView) | This library. |
 | Visibility inside **nested** scroll views | This library — the alternatives below don't clip by ancestors. |
+| Whether a **part of a row** is visible (a video, a banner, a card in a nested carousel) by its own area | This library — `viewabilityConfig` measures whole items, on one axis. |
 | Visibility while scrolling with a native-driver `Animated.event` | Works (checks every frame during touch/momentum) — full support is planned with the Reanimated engine. |
 
 ### Compared with alternatives

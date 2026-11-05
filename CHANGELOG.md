@@ -1,5 +1,20 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+- Type-checks against React Native 0.88 types (`unstable_batchedUpdates` now takes two arguments).
+
+### Documentation
+
+- Recycling lists (FlashList, Legend List): hook state belongs to the cell, so `triggerOnce` must not be used for once-per-item logic; recipe that dedupes by item id.
+- Auto-play video recipe with `expo-video`, and when to prefer this library over `viewabilityConfig`.
+
+### Development
+
+- Library is developed and tested against React Native 0.88 / React 19.3 (Jest preset moved to `@react-native/jest-preset`).
+
 ## 2.0.0-beta.1
 
 ### Documentation

@@ -36,6 +36,8 @@ function Row({ item }) {
 - No `<ViewportProvider>` → measured against the window and not updated on scroll (dev warning). Use `root={null}` for static screens.
 - `threshold` is area-based (0–1). `rootMargin` is pixels; on the outermost provider it extends past the screen (preload).
 - For which FlatList rows are visible, `onViewableItemsChanged` is enough; use this library for arbitrary views and nested lists.
+- `threshold` applies to the observed view itself (e.g. a video inside a row), and nested carousels are clipped by every ancestor list — `viewabilityConfig` cannot express either.
+- Recycling lists (FlashList, Legend List): hook state belongs to the cell, so don't use `triggerOnce` for once-per-item logic; dedupe by item id in `onChange` (or key the component by item id).
 - 1.x `ViewPortDetector`/`ViewPortDetectorProvider` are deprecated (still work); see docs/MIGRATION.md.
 
 ## Benchmark (vs alternatives, Android emulator + iOS simulator, 300 rows)
