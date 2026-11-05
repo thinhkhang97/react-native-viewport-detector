@@ -6,7 +6,7 @@ Nothing breaks on upgrade: `ViewPortDetector` and `ViewPortDetectorProvider` beh
 
 ## Why move
 
-The 1.x components poll: every detector runs its own timer and asks native for its position, even when nothing moves. 2.0 updates only when the list scrolls or lays out, measures one anchor view per list per frame, and uses the same API as the web's `react-intersection-observer`.
+The 1.x components poll: every detector runs its own timer and asks native for its position, even when nothing moves. 2.0 updates only when the list scrolls or lays out, measures only the views near the viewport on each scrolled frame, and uses the same API as the web's `react-intersection-observer`.
 
 ## Mapping
 
